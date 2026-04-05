@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Folio — Portfolio Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="logo"><span class="logo-mark">◈</span><span class="logo-text">Folio</span></div>
+    <nav class="nav">
+      <p class="nav-section">Portfolio</p>
+      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">▦</span><span class="nav-label">Dashboard</span></button>
+      <button class="nav-item" data-view="holdings"><span class="nav-icon">◫</span><span class="nav-label">Holdings</span></button>
+      <button class="nav-item" data-view="transactions"><span class="nav-icon">⇅</span><span class="nav-label">Trade Log</span></button>
+      <button class="nav-item" data-view="watchlist"><span class="nav-icon">◉</span><span class="nav-label">Watchlist</span></button>
+      <button class="nav-item" data-view="benchmark"><span class="nav-icon">◎</span><span class="nav-label">Benchmark</span></button>
+
+      <p class="nav-section">Insights</p>
+      <button class="nav-item" data-view="news"><span class="nav-icon">◈</span><span class="nav-label">Market News</span></button>
+      <button class="nav-item" data-view="insider"><span class="nav-icon">⬡</span><span class="nav-label">Insider Trading</span></button>
+      <button class="nav-item" data-view="copy"><span class="nav-icon">⊛</span><span class="nav-label">Copy Trading</span></button>
+      <button class="nav-item" data-view="strategies"><span class="nav-icon">⊞</span><span class="nav-label">Strategies</span></button>
+      <button class="nav-item" data-view="ai"><span class="nav-icon">✦</span><span class="nav-label">AI Advisor</span></button>
+
+      <p class="nav-section">Practice</p>
+      <button class="nav-item" data-view="paper"><span class="nav-icon">◧</span><span class="nav-label">Paper Trading</span></button>
+
+      <p class="nav-section">Actions</p>
+      <button class="nav-item nav-item--cta" data-view="add"><span class="nav-icon">⊕</span><span class="nav-label">Add Position</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div class="user-info"><p class="user-name" id="user-name">—</p><p class="user-email" id="user-email">—</p></div>
+      </div>
+      <div class="status-row">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-text" id="last-updated-text">Connecting…</span>
+      </div>
+      <div class="sidebar-btns">
+        <button class="refresh-btn" id="refreshBtn">↻</button>
+        <button class="logout-btn" onclick="logout()">⎋ Sign Out</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="disclaimer-banner">⚠ <strong>Not financial advice.</strong> Folio is for informational purposes only. Always do your own research before investing.</div>
+
+    <!-- ▓ DASHBOARD ▓ -->
+    <section class="view active" id="view-dashboard">
+      <header class="page-header"><div><p class="eyebrow">Overview</p><h1 class="page-title">Dashboard</h1></div></header>
+      <div class="stat-grid">
+        <div class="stat-card stat-card--accent"><p class="stat-label">Portfolio Value</p><p class="stat-value" id="s-total-value">—</p><p class="stat-delta" id="s-total-gl"></p></div>
+        <div class="stat-card"><p class="stat-label">Total Invested</p><p class="stat-value" id="s-total-cost">—</p><p class="stat-delta muted">Cost basis</p></div>
+        <div class="stat-card"><p class="stat-label">Positions</p><p class="stat-value" id="s-positions">—</p><p class="stat-delta muted" id="s-txn-count">— trades logged</p></div>
+        <div class="stat-card"><p class="stat-label">Best Performer</p><p class="stat-value" id="s-best-ticker">—</p><p class="stat-delta" id="s-best-pct"></p></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card" style="flex:1.25"><p class="chart-label">Allocation</p><div class="chart-container"><canvas id="allocationChart"></canvas></div><p class="chart-empty" id="alloc-empty" style="display:none">Add holdings to see allocation</p></div>
+        <div class="chart-card" style="flex:1"><p class="chart-label">Return by Position</p><div class="chart-container"><canvas id="perfChart"></canvas></div><p class="chart-empty" id="perf-empty" style="display:none">No data yet</p></div>
+      </div>
+      <div class="card"><p class="chart-label">Position Breakdown</p><div id="position-rows" class="position-rows"></div></div>
+    </section>
+
+    <!-- ▓ HOLDINGS ▓ -->
+    <section class="view" id="view-holdings">
+      <header class="page-header"><div><p class="eyebrow">Portfolio</p><h1 class="page-title">Holdings</h1></div><button class="btn btn-accent" onclick="switchView('add')">⊕ Add Position</button></header>
+      <div class="card table-card"><div class="table-scroll"><table class="data-table">
+        <thead><tr><th>Ticker</th><th>Shares</th><th>Avg Cost</th><th>Price</th><th>Market Value</th><th>P&amp;L</th><th>Return</th><th>Date</th><th></th></tr></thead>
+        <tbody id="holdings-tbody"><tr class="empty-row"><td colspan="9">No holdings yet.</td></tr></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- ▓ TRADE LOG ▓ -->
+    <section class="view" id="view-transactions">
+      <header class="page-header"><div><p class="eyebrow">History</p><h1 class="page-title">Trade Log</h1></div><button class="btn btn-accent" id="txn-form-toggle" onclick="openTxnForm()">⊕ Log Trade</button></header>
+      <div class="card txn-form-card" id="txn-form-card" style="display:none">
+        <p class="section-label">Log a Trade</p>
+        <div class="txn-form-grid">
+          <div class="form-group"><label class="form-label">Type</label><div class="toggle-group"><button class="toggle-btn active" id="txn-type-buy" onclick="setTxnType('buy')">▲ Buy</button><button class="toggle-btn" id="txn-type-sell" onclick="setTxnType('sell')">▼ Sell</button></div></div>
+          <div class="form-group"><label class="form-label">Ticker <span class="req">*</span></label><input type="text" id="txn-ticker" class="form-input upper" placeholder="AAPL" maxlength="10" /></div>
+          <div class="form-group"><label class="form-label">Shares <span class="req">*</span></label><input type="number" id="txn-shares" class="form-input" placeholder="0.00" step="any" /></div>
+          <div class="form-group"><label class="form-label">Price / Share <span class="req">*</span></label><div class="prefix-wrap"><span class="prefix">$</span><input type="number" id="txn-price" class="form-input has-prefix" placeholder="0.00" step="any" /></div></div>
+          <div class="form-group"><label class="form-label">Date</label><input type="date" id="txn-date" class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Strategy Tag</label>
+            <select id="txn-strategy" class="form-input">
+              <option value="">— None —</option>
+              <option value="conviction">High Conviction</option>
+              <option value="research">Deep Research</option>
+              <option value="momentum">Momentum</option>
+              <option value="value">Value Play</option>
+              <option value="dividend">Dividend</option>
+              <option value="hedge">Hedge</option>
+              <option value="speculative">Speculative</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Emotion Tag</label>
+            <select id="txn-emotion" class="form-input">
+              <option value="">— None —</option>
+              <option value="conviction">💪 Conviction</option>
+              <option value="fomo">😰 FOMO</option>
+              <option value="panic_sell">😱 Panic Sell</option>
+              <option value="patient">🧘 Patient</option>
+              <option value="opportunistic">🎯 Opportunistic</option>
+              <option value="disciplined">📐 Disciplined</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Notes</label><input type="text" id="txn-notes" class="form-input" placeholder="Why this trade?" /></div>
+        </div>
+        <div id="txn-total-preview" class="txn-preview" style="display:none"></div>
+        <div class="form-actions"><button class="btn btn-ghost" onclick="closeTxnForm()">Cancel</button><button class="btn btn-accent" onclick="submitTransaction()">Log Trade</button></div>
+        <div id="txn-error" class="inline-msg inline-error" style="display:none"></div>
+        <div id="txn-success" class="inline-msg inline-success" style="display:none"></div>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="txn-search" class="filter-input" placeholder="Filter by ticker…" oninput="renderTransactions()" />
+        <div class="pill-group">
+          <button class="pill active" data-filter="all" onclick="setTxnFilter(this)">All</button>
+          <button class="pill" data-filter="buy" onclick="setTxnFilter(this)">Buys</button>
+          <button class="pill" data-filter="sell" onclick="setTxnFilter(this)">Sells</button>
+        </div>
+      </div>
+      <!-- Trade stats summary -->
+      <div class="stat-grid" id="trade-stats" style="margin-bottom:16px;grid-template-columns:repeat(4,1fr)"></div>
+      <div class="card table-card"><div class="table-scroll"><table class="data-table">
+        <thead><tr><th>Date</th><th>Ticker</th><th>Type</th><th>Shares</th><th>Price</th><th>Total</th><th>Strategy</th><th>Emotion</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="txn-tbody"><tr class="empty-row"><td colspan="10">No trades logged yet.</td></tr></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- ▓ WATCHLIST ▓ -->
+    <section class="view" id="view-watchlist">
+      <header class="page-header"><div><p class="eyebrow">Tracking</p><h1 class="page-title">Watchlist</h1></div><button class="btn btn-accent" onclick="openWatchlistForm()">⊕ Add Ticker</button></header>
+      <div class="card" id="watchlist-form-card" style="display:none;margin-bottom:16px">
+        <p class="section-label">Add to Watchlist</p>
+        <div class="txn-form-grid">
+          <div class="form-group"><label class="form-label">Ticker <span class="req">*</span></label><input type="text" id="wl-ticker" class="form-input upper" placeholder="TSLA" maxlength="10" /></div>
+          <div class="form-group"><label class="form-label">Target Price</label><div class="prefix-wrap"><span class="prefix">$</span><input type="number" id="wl-target" class="form-input has-prefix" placeholder="0.00" step="any" /></div></div>
+          <div class="form-group"><label class="form-label">Notes</label><input type="text" id="wl-notes" class="form-input" placeholder="Why watching?" /></div>
+        </div>
+        <div class="form-actions"><button class="btn btn-ghost" onclick="closeWatchlistForm()">Cancel</button><button class="btn btn-accent" onclick="submitWatchlist()">Add</button></div>
+        <div id="wl-error" class="inline-msg inline-error" style="display:none"></div>
+      </div>
+      <div class="card table-card"><div class="table-scroll"><table class="data-table">
+        <thead><tr><th>Ticker</th><th>Current Price</th><th>Target Price</th><th>Distance</th><th>Notes</th><th>Added</th><th></th></tr></thead>
+        <tbody id="watchlist-tbody"><tr class="empty-row"><td colspan="7">Watchlist is empty.</td></tr></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- ▓ BENCHMARK ▓ -->
+    <section class="view" id="view-benchmark">
+      <header class="page-header"><div><p class="eyebrow">Performance</p><h1 class="page-title">vs S&amp;P 500</h1></div><button class="btn btn-ghost" onclick="loadBenchmark(true)">↻ Refresh</button></header>
+      <div id="bench-loading" class="bench-loading"><div class="spinner"></div><p>Fetching benchmark data…</p></div>
+      <div id="bench-content" style="display:none">
+        <div class="bench-hero">
+          <div class="bench-col"><p class="bench-col-label">Your Portfolio</p><p class="bench-big" id="bench-port-pct">—</p><p class="bench-col-sub">1-year total return</p></div>
+          <div class="bench-divider"><span class="bench-vs">vs</span></div>
+          <div class="bench-col"><p class="bench-col-label">S&amp;P 500 (SPY)</p><p class="bench-big neutral" id="bench-spy-pct">—</p><p class="bench-col-sub">1-year total return</p></div>
+        </div>
+        <div class="bench-verdict-row"><div class="bench-verdict" id="bench-verdict"><span id="bench-verdict-icon"></span><span id="bench-verdict-text"></span></div></div>
+        <div class="bench-stats-row">
+          <div class="card mini-stat"><p class="stat-label">Portfolio Cost</p><p class="stat-value sm" id="b-cost">—</p></div>
+          <div class="card mini-stat"><p class="stat-label">Current Value</p><p class="stat-value sm" id="b-value">—</p></div>
+          <div class="card mini-stat"><p class="stat-label">SPY 1yr Ago</p><p class="stat-value sm" id="b-spy-start">—</p></div>
+          <div class="card mini-stat"><p class="stat-label">SPY Now</p><p class="stat-value sm" id="b-spy-now">—</p></div>
+        </div>
+        <div class="card"><p class="chart-label">Holdings vs S&amp;P 500</p><div class="chart-container tall"><canvas id="benchChart"></canvas></div></div>
+      </div>
+      <div id="bench-error" class="bench-error" style="display:none"><p class="bench-error-icon">⚠</p><p>Could not load benchmark data.</p><p class="muted">Add holdings first.</p></div>
+    </section>
+
+    <!-- ▓ NEWS ▓ -->
+    <section class="view" id="view-news">
+      <header class="page-header"><div><p class="eyebrow">Market Intelligence</p><h1 class="page-title">Market News</h1></div><button class="btn btn-ghost" onclick="loadNews(true)">↻ Refresh</button></header>
+      <div id="news-loading" class="bench-loading"><div class="spinner"></div><p>Fetching latest news…</p></div>
+      <div id="news-grid" class="news-grid" style="display:none"></div>
+      <div id="news-error" class="bench-error" style="display:none"><p class="bench-error-icon">📰</p><p>Could not load news.</p></div>
+    </section>
+
+    <!-- ▓ INSIDER TRADING ▓ -->
+    <section class="view" id="view-insider">
+      <header class="page-header"><div><p class="eyebrow">SEC EDGAR</p><h1 class="page-title">Insider Trading</h1></div><button class="btn btn-ghost" onclick="loadInsider(true)">↻ Refresh</button></header>
+      <div class="card" style="margin-bottom:16px;background:var(--blue-bg);border-color:rgba(91,138,245,0.3)">
+        <p style="font-size:12px;color:var(--text-2);line-height:1.7"><strong style="color:var(--blue)">ℹ What is insider trading data?</strong><br>Corporate insiders must file <strong>Form 4</strong> with the SEC within 2 days of trading their company's stock. This is <em>public, legal data</em>. Tracking these filings can reveal executive confidence or concern.</p>
+      </div>
+      <div id="insider-loading" class="bench-loading"><div class="spinner"></div><p>Fetching SEC filings…</p></div>
+      <div id="insider-content" style="display:none">
+        <div class="card table-card"><div class="table-scroll"><table class="data-table">
+          <thead><tr><th>Date</th><th>Ticker</th><th>Insider</th><th>Position</th><th>Action</th><th>Shares</th><th>Price</th><th>Total Value</th><th>Filing</th></tr></thead>
+          <tbody id="insider-tbody"></tbody>
+        </table></div></div>
+      </div>
+      <div id="insider-error" class="bench-error" style="display:none"><p class="bench-error-icon">⚠</p><p>Could not load insider data.</p><p class="muted">Add holdings to see insider activity.</p></div>
+    </section>
+
+    <!-- ▓ COPY TRADING ▓ -->
+    <section class="view" id="view-copy">
+      <header class="page-header"><div><p class="eyebrow">Community</p><h1 class="page-title">Copy Trading</h1></div></header>
+      <div class="card" style="margin-bottom:16px">
+        <div class="copy-profile-row">
+          <div><p class="chart-label">Your Visibility</p><p style="font-size:12px;color:var(--text-2);margin-top:4px" id="copy-visibility-status">Loading…</p></div>
+          <div class="profile-toggle-row"><span style="font-size:12px;color:var(--text-2)">Private</span><label class="toggle-switch"><input type="checkbox" id="copy-public-toggle" onchange="togglePublicProfile()" /><span class="toggle-slider"></span></label><span style="font-size:12px;color:var(--text-2)">Public</span></div>
+        </div>
+        <input type="text" id="copy-bio" class="form-input" placeholder="Your bio…" style="margin-top:12px" onblur="saveBio()" />
+      </div>
+      <div class="pill-group" style="margin-bottom:16px">
+        <button class="pill copy-tab active" data-copy-tab="famous" onclick="setCopyTab('famous')">⭐ Famous Investors</button>
+        <button class="pill copy-tab" data-copy-tab="ceos" onclick="setCopyTab('ceos')">💻 Tech CEOs</button>
+        <button class="pill copy-tab" data-copy-tab="community" onclick="setCopyTab('community')">👥 Community</button>
+      </div>
+      <div id="leaderboard-loading" class="bench-loading" style="padding:40px"><div class="spinner"></div></div>
+      <div id="leaderboard-grid" class="leaderboard-grid" style="display:none"></div>
+      <div id="leaderboard-error" class="bench-error" style="display:none"><p>No entries yet.</p><p class="muted">Be the first — toggle your portfolio to Public!</p></div>
+      <div id="copy-portfolio-drawer" style="display:none">
+        <div class="page-header" style="margin-top:24px"><h2 class="page-title" id="copy-drawer-title" style="font-size:20px">—</h2><button class="btn btn-ghost" onclick="closeCopyDrawer()">✕ Close</button></div>
+        <div class="card table-card"><div class="table-scroll"><table class="data-table">
+          <thead><tr><th>Ticker</th><th>Shares</th><th>Price</th><th>Value</th><th>Return</th></tr></thead>
+          <tbody id="copy-portfolio-tbody"></tbody>
+        </table></div></div>
+      </div>
+    </section>
+
+    <!-- ▓ STRATEGIES ▓ -->
+    <section class="view" id="view-strategies">
+      <header class="page-header"><div><p class="eyebrow">Investment Philosophy</p><h1 class="page-title">Strategies</h1></div></header>
+
+      <!-- My strategy profile -->
+      <div class="card" style="margin-bottom:20px">
+        <p class="section-label">My Investment Profile</p>
+        <div class="txn-form-grid">
+          <div class="form-group">
+            <label class="form-label">Strategy Style</label>
+            <select id="my-strategy" class="form-input" onchange="saveStrategyProfile()">
+              <option value="">— Select —</option>
+              <option value="growth">🚀 Growth</option>
+              <option value="value">💎 Value</option>
+              <option value="dividend">💰 Dividend / Income</option>
+              <option value="momentum">⚡ Momentum</option>
+              <option value="index">📊 Index / Passive</option>
+              <option value="contrarian">🔄 Contrarian</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Time Horizon</label>
+            <select id="my-horizon" class="form-input" onchange="saveStrategyProfile()">
+              <option value="">— Select —</option>
+              <option value="short">Short (&lt; 1 year)</option>
+              <option value="medium">Medium (1–5 years)</option>
+              <option value="long">Long (5–20 years)</option>
+              <option value="very_long">Very Long (20+ years)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Risk Tolerance</label>
+            <select id="my-risk" class="form-input" onchange="saveStrategyProfile()">
+              <option value="">— Select —</option>
+              <option value="low">🛡️ Conservative</option>
+              <option value="medium">⚖️ Moderate</option>
+              <option value="high">🔥 Aggressive</option>
+              <option value="very_high">💥 Very Aggressive</option>
+            </select>
+          </div>
+          <div class="form-group span-2">
+            <label class="form-label">My Strategy Notes (optional — shown publicly if portfolio is public)</label>
+            <input type="text" id="my-strategy-notes" class="form-input" placeholder="Describe your investment philosophy in your own words…" onblur="saveStrategyProfile()" />
+          </div>
+        </div>
+        <div id="strategy-saved" class="inline-msg inline-success" style="display:none">✓ Strategy profile saved</div>
+      </div>
+
+      <!-- Strategy cards -->
+      <p class="chart-label" style="margin-bottom:14px">Investment Strategy Playbooks</p>
+      <div id="strategy-grid" class="strategy-grid"></div>
+
+      <!-- Community strategies -->
+      <p class="chart-label" style="margin:20px 0 14px">Community — Shared Strategies</p>
+      <div class="card table-card">
+        <div class="table-scroll"><table class="data-table">
+          <thead><tr><th>User</th><th>Strategy</th><th>Horizon</th><th>Risk</th><th>Notes</th></tr></thead>
+          <tbody id="community-strategy-tbody"><tr class="empty-row"><td colspan="5">No public strategies yet.</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ▓ AI ADVISOR ▓ -->
+    <section class="view" id="view-ai">
+      <header class="page-header"><div><p class="eyebrow">AI-Powered</p><h1 class="page-title">AI Advisor</h1></div><button class="btn btn-ghost" onclick="clearChat()">↺ New Chat</button></header>
+      <div class="card" style="margin-bottom:14px;background:var(--red-bg);border-color:rgba(240,84,106,0.3)">
+        <p style="font-size:12px;color:var(--text-2)">⚠ <strong style="color:var(--red)">Disclaimer:</strong> The AI Advisor and all persona roleplays are for educational purposes only — NOT financial advice. Never make investment decisions based solely on AI output.</p>
+      </div>
+
+      <!-- Persona selector -->
+      <div class="card" style="margin-bottom:14px">
+        <p class="section-label">Choose Your Advisor</p>
+        <div id="persona-grid" class="persona-grid"></div>
+      </div>
+
+      <div class="ai-chat-container">
+        <div class="ai-messages" id="ai-messages">
+          <div class="ai-msg ai-msg--assistant">
+            <div class="ai-avatar" id="ai-avatar-main">✦</div>
+            <div class="ai-bubble">Hi! I'm your Folio AI Advisor. I have access to your real portfolio data and can help you analyze holdings, discuss strategies, and answer investment questions.<br><br>You can also switch to a famous investor persona above — ask Warren Buffett what he thinks of your portfolio, or get Peter Lynch's take on your growth stocks!<br><br><em style="color:var(--text-3);font-size:12px">⚠ Persona roleplays are educational simulations, not actual advice from these individuals.</em></div>
+          </div>
+        </div>
+        <div class="ai-suggestions" id="ai-suggestions">
+          <button class="ai-suggestion" onclick="sendSuggestion(this)">📊 Analyze my portfolio</button>
+          <button class="ai-suggestion" onclick="sendSuggestion(this)">⚖️ Am I too concentrated?</button>
+          <button class="ai-suggestion" onclick="sendSuggestion(this)">📈 What would you buy right now?</button>
+          <button class="ai-suggestion" onclick="sendSuggestion(this)">🛡️ What's my biggest risk?</button>
+        </div>
+        <div class="ai-input-row">
+          <input type="text" id="ai-input" class="ai-input" placeholder="Ask anything about your portfolio…" onkeydown="if(event.key==='Enter')sendMessage()" />
+          <button class="ai-send-btn" id="ai-send-btn" onclick="sendMessage()">↑</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ▓ PAPER TRADING ▓ -->
+    <section class="view" id="view-paper">
+      <header class="page-header">
+        <div><p class="eyebrow">Simulated Trading</p><h1 class="page-title">Paper Trading</h1></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="loadPaperPortfolio()">↻ Refresh</button>
+          <button class="btn btn-danger btn-sm" onclick="resetPaperPortfolio()">↺ Reset</button>
+        </div>
+      </header>
+      <div class="card" style="margin-bottom:16px;background:var(--green-bg);border-color:rgba(38,217,160,0.3)">
+        <p style="font-size:12px;color:var(--text-2);line-height:1.7"><strong style="color:var(--green)">📋 What is Paper Trading?</strong><br>Practice investing with <strong>$100,000 in virtual money</strong>. Trades execute at real live prices but no real money changes hands. Perfect for testing strategies before committing real capital.</p>
+      </div>
+
+      <!-- Paper portfolio summary -->
+      <div class="stat-grid" id="paper-stats" style="margin-bottom:16px"></div>
+
+      <!-- Trade form -->
+      <div class="card" style="margin-bottom:16px">
+        <p class="section-label">Execute a Paper Trade</p>
+        <div class="txn-form-grid">
+          <div class="form-group"><label class="form-label">Action</label><div class="toggle-group"><button class="toggle-btn active" id="paper-type-buy" onclick="setPaperType('buy')">▲ Buy</button><button class="toggle-btn" id="paper-type-sell" onclick="setPaperType('sell')">▼ Sell</button></div></div>
+          <div class="form-group"><label class="form-label">Ticker <span class="req">*</span></label><input type="text" id="paper-ticker" class="form-input upper" placeholder="AAPL" maxlength="10" oninput="updatePaperPreview()" /></div>
+          <div class="form-group"><label class="form-label">Shares <span class="req">*</span></label><input type="number" id="paper-shares" class="form-input" placeholder="0.00" step="any" oninput="updatePaperPreview()" /></div>
+          <div class="form-group"><label class="form-label">Notes</label><input type="text" id="paper-notes" class="form-input" placeholder="Why this trade?" /></div>
+        </div>
+        <div id="paper-preview" class="txn-preview" style="display:none"></div>
+        <div class="form-actions"><button class="btn btn-accent" onclick="executePaperTrade()">Execute Paper Trade</button></div>
+        <div id="paper-error"   class="inline-msg inline-error"   style="display:none"></div>
+        <div id="paper-success" class="inline-msg inline-success" style="display:none"></div>
+      </div>
+
+      <!-- Positions -->
+      <p class="chart-label" style="margin-bottom:12px">Paper Portfolio — Current Positions</p>
+      <div class="card table-card" style="margin-bottom:16px"><div class="table-scroll"><table class="data-table">
+        <thead><tr><th>Ticker</th><th>Shares</th><th>Avg Cost</th><th>Current Price</th><th>Market Value</th><th>P&amp;L</th><th>Return</th></tr></thead>
+        <tbody id="paper-positions-tbody"><tr class="empty-row"><td colspan="7">No paper positions yet. Execute a trade above.</td></tr></tbody>
+      </table></div></div>
+
+      <!-- Paper trade history -->
+      <p class="chart-label" style="margin-bottom:12px">Paper Trade History</p>
+      <div class="card table-card"><div class="table-scroll"><table class="data-table">
+        <thead><tr><th>Date</th><th>Time</th><th>Ticker</th><th>Action</th><th>Shares</th><th>Price</th><th>Total</th><th>Notes</th></tr></thead>
+        <tbody id="paper-trades-tbody"><tr class="empty-row"><td colspan="8">No trades yet.</td></tr></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- ▓ ADD POSITION ▓ -->
+    <section class="view" id="view-add">
+      <header class="page-header"><div><p class="eyebrow">New Position</p><h1 class="page-title">Add Holding</h1></div></header>
+      <div class="card form-card">
+        <div class="form-grid">
+          <div class="form-group span-2"><label class="form-label">Ticker <span class="req">*</span></label><div class="ticker-wrap"><input type="text" id="input-ticker" class="form-input upper" placeholder="e.g. AAPL" maxlength="10" /><span id="ticker-status" class="ticker-status"></span></div><p id="ticker-name" class="ticker-name"></p></div>
+          <div class="form-group"><label class="form-label">Shares <span class="req">*</span></label><input type="number" id="input-shares" class="form-input" placeholder="0.00" step="any" /></div>
+          <div class="form-group"><label class="form-label">Purchase Price <span class="req">*</span></label><div class="prefix-wrap"><span class="prefix">$</span><input type="number" id="input-price" class="form-input has-prefix" placeholder="0.00" step="any" /></div></div>
+          <div class="form-group"><label class="form-label">Purchase Date</label><input type="date" id="input-date" class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Notes</label><input type="text" id="input-notes" class="form-input" placeholder="Optional" /></div>
+        </div>
+        <div class="preview-box" id="add-preview" style="display:none">
+          <div class="preview-row"><span>Total Cost</span><span id="p-cost">—</span></div>
+          <div class="preview-row"><span>Est. Current Value</span><span id="p-value">—</span></div>
+          <div class="preview-row"><span>Unrealized P&amp;L</span><span id="p-pnl" class="p-pnl">—</span></div>
+        </div>
+        <div class="form-actions"><button class="btn btn-ghost" onclick="switchView('holdings')">Cancel</button><button class="btn btn-accent" id="add-submit-btn" onclick="submitHolding()">Add Position</button></div>
+        <div id="add-error"   class="inline-msg inline-error"   style="display:none"></div>
+        <div id="add-success" class="inline-msg inline-success" style="display:none"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Delete modal -->
+  <div class="overlay" id="modal-overlay" style="display:none">
+    <div class="modal"><p class="modal-icon">✕</p><h3 class="modal-title" id="modal-title">Confirm Removal</h3><p class="modal-body" id="modal-body"></p><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-danger" id="modal-confirm">Remove</button></div></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
