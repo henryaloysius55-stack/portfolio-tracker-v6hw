@@ -1,54 +1,25 @@
 // ══════════════════════════════════════════════
-//  FOLIO v5 — app.js (Production Cloud Version)
+//  FOLIO v5 — app.js
 // ══════════════════════════════════════════════
 
-const API = "https://folio-backend-ldny.onrender.com"; 
+const API = "https://folio-backend-ldny.onrender.com"; // ← your Render URL
 
-// Change the Auth Guard section to this:
-const isAuthPage = window.location.pathname.includes("login.html") || 
-                   window.location.pathname.includes("register.html");
+// ── Auth Guard ─────────────────────────────────
+const token = localStorage.getItem("folio_token");
+const user  = JSON.parse(localStorage.getItem("folio_user") || "null");
+if (!token || !user) window.location.href = "login.html";
 
-if (!isAuthPage) {
-    if (!token || !user || user === "null") {
-        console.log("No credentials found, redirecting to login.");
-        window.location.href = "login.html";
-    }
-}
-// Prevent access to index if credentials are missing
-if (!window.location.pathname.includes("login.html") && !window.location.pathname.includes("register.html")) {
-    if (!token || !user) {
-        window.location.href = "login.html";
-    }
+function authFetch(url, options = {}) {
+  return fetch(url, {
+    ...options,
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`, ...(options.headers || {}) },
+  }).then(res => {
+    if (res.status === 401) { localStorage.clear(); window.location.href = "login.html"; }
+    return res;
+  });
 }
 
-/**
- * Enhanced authFetch to prevent 404s and handle Render URLs correctly
- */
-function authFetch(endpoint, options = {}) {
-    // This logic ensures we don't end up with double slashes or missing slashes
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const url = endpoint.startsWith('http') ? endpoint : `${API}${cleanEndpoint}`;
-    
-    return fetch(url, {
-        ...options,
-        headers: { 
-            "Content-Type": "application/json", 
-            "Authorization": `Bearer ${token}`, 
-            ...(options.headers || {}) 
-        },
-    }).then(res => {
-        if (res.status === 401) { 
-            localStorage.clear(); 
-            window.location.href = "login.html"; 
-        }
-        return res;
-    });
-}
-
-function logout() { 
-    localStorage.clear(); 
-    window.location.href = "login.html"; 
-}
+function logout() { localStorage.clear(); window.location.href = "login.html"; }
 
 // ── State ──────────────────────────────────────
 let holdings = [], transactions = [], watchlist = [], chatHistory = [];
@@ -60,6 +31,7 @@ let copyProfile = { is_public: false, bio: "" };
 let copyTab = "famous";
 let currentPersona = "default";
 let personas = [];
+
 const PALETTE = ["#f5b731","#26d9a0","#5b8af5","#f0546a","#a78bfa","#34d399","#fb923c","#38bdf8","#f472b6","#facc15"];
 const TT = (fn) => ({ callbacks:{label:fn}, backgroundColor:"#181c28", titleColor:"#e9ebf2", bodyColor:"#9aa0b8", borderColor:"rgba(255,255,255,0.08)", borderWidth:1, padding:10, cornerRadius:8 });
 
