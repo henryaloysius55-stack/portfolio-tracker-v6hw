@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Folio — Import Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0c0e13;--bg2:#11141c;--bg3:#181c28;--bg4:#1f2435;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+      --text:#e9ebf2;--text2:#9aa0b8;--text3:#565d78;
+      --accent:#f5b731;--accent2:#f7c94a;--accent-bg:rgba(245,183,49,0.10);
+      --green:#26d9a0;--green-bg:rgba(38,217,160,0.10);
+      --red:#f0546a;--red-bg:rgba(240,84,106,0.10);
+      --blue:#5b8af5;--blue-bg:rgba(91,138,245,0.10);
+      --font-d:'Syne',sans-serif;--font-m:'DM Mono',monospace;
+      --radius:14px;--radius-sm:8px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--font-m);font-size:13.5px;min-height:100vh;padding:32px 24px 60px}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(245,183,49,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(245,183,49,0.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+
+    .container{max-width:900px;margin:0 auto;position:relative;z-index:1}
+
+    /* Header */
+    .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
+    .logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+    .logo-mark{color:var(--accent);font-size:20px}.logo-text{font-family:var(--font-d);font-size:19px;font-weight:800;letter-spacing:-0.5px;color:var(--text)}
+    .back-btn{background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-family:var(--font-m);font-size:12px;padding:7px 14px;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.14s}
+    .back-btn:hover{background:var(--bg3);color:var(--text)}
+
+    .eyebrow{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+    .page-title{font-family:var(--font-d);font-size:28px;font-weight:800;letter-spacing:-0.8px;margin-bottom:24px}
+
+    /* Cards */
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+
+    /* Upload zone */
+    .upload-zone{border:2px dashed var(--border2);border-radius:var(--radius-sm);padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative}
+    .upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:var(--accent-bg)}
+    .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .upload-icon{font-size:36px;margin-bottom:12px}
+    .upload-title{font-family:var(--font-d);font-size:16px;font-weight:700;margin-bottom:6px}
+    .upload-sub{font-size:12px;color:var(--text2)}
+    .upload-sub strong{color:var(--accent)}
+
+    /* Steps */
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+    .step{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:center}
+    .step-num{width:28px;height:28px;border-radius:50%;background:var(--accent-bg);border:1px solid var(--accent);color:var(--accent);font-family:var(--font-d);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+    .step-title{font-size:12.5px;font-weight:500;margin-bottom:4px}
+    .step-desc{font-size:11px;color:var(--text2);line-height:1.5}
+
+    /* Preview table */
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;white-space:nowrap}
+    th{background:var(--bg3);color:var(--text3);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 14px;text-align:left;font-weight:400}
+    td{padding:11px 14px;border-top:1px solid var(--border);color:var(--text);font-size:13px}
+    tr:hover td{background:rgba(255,255,255,0.015)}
+    .cell-ticker{font-family:var(--font-d);font-size:14px;font-weight:700}
+    .empty-row td{text-align:center;color:var(--text3);padding:40px!important}
+
+    /* Badges */
+    .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500}
+    .badge-green{background:var(--green-bg);color:var(--green)}
+    .badge-red{background:var(--red-bg);color:var(--red)}
+    .badge-blue{background:var(--blue-bg);color:var(--blue)}
+
+    /* Checkbox */
+    .row-check{width:16px;height:16px;cursor:pointer;accent-color:var(--accent)}
+
+    /* Summary bar */
+    .summary-bar{display:flex;gap:20px;padding:16px 20px;background:var(--bg3);border-radius:var(--radius-sm);margin-bottom:16px;flex-wrap:wrap}
+    .summary-item{display:flex;flex-direction:column;gap:3px}
+    .summary-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3)}
+    .summary-value{font-family:var(--font-d);font-size:18px;font-weight:700}
+
+    /* Buttons */
+    .btn{font-family:var(--font-m);font-size:13px;padding:10px 20px;border-radius:var(--radius-sm);border:none;cursor:pointer;transition:all 0.14s}
+    .btn-accent{background:var(--accent);color:#0c0e13;font-weight:600}.btn-accent:hover{background:var(--accent2)}.btn-accent:disabled{opacity:.45;cursor:not-allowed}
+    .btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}.btn-ghost:hover{background:var(--bg3);color:var(--text)}
+    .btn-danger{background:var(--red-bg);border:1px solid var(--red);color:var(--red)}
+
+    /* Messages */
+    .msg{padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;margin-top:16px;display:none;line-height:1.6}
+    .msg-error{background:var(--red-bg);border:1px solid var(--red);color:var(--red)}
+    .msg-success{background:var(--green-bg);border:1px solid var(--green);color:var(--green)}
+    .msg-info{background:var(--blue-bg);border:1px solid var(--blue);color:var(--blue)}
+
+    /* Progress */
+    .progress-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin:12px 0}
+    .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;width:0%}
+
+    /* Actions row */
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .select-all-label{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;cursor:pointer}
+
+    /* Skipped rows */
+    .skipped-section{margin-top:16px}
+    .skipped-title{font-size:11px;color:var(--text3);margin-bottom:8px;cursor:pointer}
+    .skipped-list{display:none;font-size:11px;color:var(--text3);line-height:1.8;padding:10px;background:var(--bg3);border-radius:var(--radius-sm)}
+
+    /* Spinner */
+    .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="top-bar">
+    <a class="logo" href="index.html"><span class="logo-mark">◈</span><span class="logo-text">Folio</span></a>
+    <a class="back-btn" href="index.html">← Back to App</a>
+  </div>
+
+  <p class="eyebrow">Fidelity CSV Import</p>
+  <h1 class="page-title">Import Your Portfolio</h1>
+
+  <!-- How it works -->
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <p class="step-title">Export from Fidelity</p>
+      <p class="step-desc">Accounts & Trade → Activity & Orders → Download → CSV</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <p class="step-title">Upload here</p>
+      <p class="step-desc">Drop your CSV file below. We read it locally — nothing is sent anywhere.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <p class="step-title">Review & Import</p>
+      <p class="step-desc">Check the detected holdings, deselect any you don't want, then import.</p>
+    </div>
+  </div>
+
+  <!-- Upload zone -->
+  <div class="card">
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" accept=".csv" id="csv-file" onchange="handleFile(this.files[0])" />
+      <div class="upload-icon">📂</div>
+      <p class="upload-title">Drop your Fidelity CSV here</p>
+      <p class="upload-sub">or click to browse · <strong>Fidelity format supported</strong></p>
+    </div>
+    <div class="msg msg-error"   id="msg-error"></div>
+    <div class="msg msg-info"    id="msg-info"></div>
+  </div>
+
+  <!-- Preview (hidden until CSV loaded) -->
+  <div id="preview-section" style="display:none">
+
+    <div class="card">
+      <p style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);margin-bottom:14px">Detected Holdings — Net Positions</p>
+
+      <div class="summary-bar" id="summary-bar"></div>
+
+      <div class="actions" style="margin-bottom:14px">
+        <label class="select-all-label">
+          <input type="checkbox" id="select-all" checked onchange="toggleAll(this.checked)" />
+          Select all
+        </label>
+        <span style="flex:1"></span>
+        <button class="btn btn-ghost btn-sm" onclick="resetImport()">↺ Upload different file</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Ticker</th>
+              <th>Net Shares</th>
+              <th>Avg Buy Price</th>
+              <th>Total Buys</th>
+              <th>Total Sells</th>
+              <th>First Trade</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="preview-tbody"></tbody>
+        </table>
+      </div>
+
+      <div id="skipped-section" class="skipped-section" style="display:none">
+        <p class="skipped-title" onclick="toggleSkipped()">▶ Show skipped rows (dividends, reinvestments, etc.)</p>
+        <div class="skipped-list" id="skipped-list"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);margin-bottom:6px">Import Settings</p>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Holdings that already exist in your portfolio will be skipped automatically.</p>
+
+      <div class="progress-bar" id="progress-bar" style="display:none"><div class="progress-fill" id="progress-fill"></div></div>
+
+      <div class="actions">
+        <button class="btn btn-accent" id="import-btn" onclick="importHoldings()">
+          ⊕ Import Selected Holdings
+        </button>
+        <span id="import-status" style="font-size:12px;color:var(--text2)"></span>
+      </div>
+
+      <div class="msg msg-success" id="msg-success"></div>
+      <div class="msg msg-error"   id="msg-import-error"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = "https://folio-backend-ldny.onrender.com";
+const token = localStorage.getItem("folio_token");
+if (!token) window.location.href = "login.html";
+
+let parsedHoldings = []; // final aggregated holdings
+let skippedRows = [];
+
+// ── Drag and drop ─────────────────────────────
+const zone = document.getElementById("upload-zone");
+zone.addEventListener("dragover",  e => { e.preventDefault(); zone.classList.add("drag-over"); });
+zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+zone.addEventListener("drop", e => { e.preventDefault(); zone.classList.remove("drag-over"); handleFile(e.dataTransfer.files[0]); });
+
+// ── Handle file ───────────────────────────────
+function handleFile(file) {
+  if (!file || !file.name.endsWith(".csv")) {
+    showMsg("msg-error", "Please upload a .csv file.");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => parseCSV(e.target.result);
+  reader.readAsText(file);
+}
+
+// ── Parse Fidelity CSV ────────────────────────
+function parseCSV(text) {
+  hideMsg("msg-error");
+  hideMsg("msg-info");
+
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+
+  // Find the header line
+  let headerIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes("Run Date") && lines[i].includes("Symbol") && lines[i].includes("Action")) {
+      headerIdx = i;
+      break;
+    }
+  }
+
+  if (headerIdx === -1) {
+    showMsg("msg-error", "Could not find Fidelity CSV headers. Make sure you downloaded from Fidelity → Activity & Orders → Download CSV.");
+    return;
+  }
+
+  const headers = parseCSVLine(lines[headerIdx]);
+  const colIdx = {};
+  headers.forEach((h, i) => { colIdx[h.trim().replace(/\uFEFF/g, "")] = i; });
+
+  const dateCol   = colIdx["Run Date"];
+  const actionCol = colIdx["Action"];
+  const symbolCol = colIdx["Symbol"];
+  const priceCol  = colIdx["Price ($)"];
+  const qtyCol    = colIdx["Quantity"];
+
+  // Aggregate by ticker
+  const positions = {}; // ticker → { totalShares, totalCost, buyCount, sellCount, firstDate, sells }
+  skippedRows = [];
+
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Stop at disclaimer
+    if (line.startsWith('"The data') || line.startsWith("Date downloaded")) break;
+
+    const cols   = parseCSVLine(line);
+    if (cols.length < 5) continue;
+
+    const date   = (cols[dateCol]   || "").trim();
+    const action = (cols[actionCol] || "").trim().toUpperCase();
+    const symbol = (cols[symbolCol] || "").trim().toUpperCase();
+    const price  = parseFloat(cols[priceCol]  || "0") || 0;
+    const qty    = parseFloat(cols[qtyCol]    || "0") || 0;
+
+    if (!symbol || symbol === "SYMBOL") continue;
+
+    const isBuy  = action.includes("YOU BOUGHT");
+    const isSell = action.includes("YOU SOLD");
+
+    if (!isBuy && !isSell) {
+      skippedRows.push(`${date} — ${symbol} — ${cols[actionCol] || "Unknown action"}`);
+      continue;
+    }
+
+    if (!positions[symbol]) {
+      positions[symbol] = { totalBuyShares: 0, totalBuyCost: 0, totalSellShares: 0, buyCount: 0, sellCount: 0, firstDate: date };
+    }
+
+    const pos = positions[symbol];
+    if (date && pos.firstDate && date < pos.firstDate) pos.firstDate = date;
+
+    if (isBuy && qty > 0 && price > 0) {
+      pos.totalBuyShares += qty;
+      pos.totalBuyCost   += qty * price;
+      pos.buyCount++;
+    } else if (isSell && qty !== 0 && price > 0) {
+      pos.totalSellShares += Math.abs(qty);
+      pos.sellCount++;
+    }
+  }
+
+  // Build final net positions
+  parsedHoldings = [];
+  for (const [ticker, pos] of Object.entries(positions)) {
+    const netShares = pos.totalBuyShares - pos.totalSellShares;
+    if (netShares <= 0.0001) continue; // fully sold — skip
+    const avgPrice = pos.totalBuyCost / pos.totalBuyShares;
+
+    parsedHoldings.push({
+      ticker,
+      netShares:   Math.round(netShares * 10000) / 10000,
+      avgPrice:    Math.round(avgPrice * 100) / 100,
+      totalBuys:   pos.buyCount,
+      totalSells:  pos.sellCount,
+      firstDate:   pos.firstDate,
+      selected:    true,
+    });
+  }
+
+  parsedHoldings.sort((a, b) => a.ticker.localeCompare(b.ticker));
+
+  if (parsedHoldings.length === 0) {
+    showMsg("msg-error", "No active holdings found in this CSV. Make sure the file contains buy transactions.");
+    return;
+  }
+
+  renderPreview();
+  document.getElementById("preview-section").style.display = "block";
+  showMsg("msg-info", `✓ Found ${parsedHoldings.length} active holdings from ${Object.keys(positions).length} tickers traded. Review below and click Import.`);
+}
+
+// ── Parse a single CSV line handling quoted fields ──
+function parseCSVLine(line) {
+  const result = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQuotes = !inQuotes; }
+    else if (ch === "," && !inQuotes) { result.push(current); current = ""; }
+    else { current += ch; }
+  }
+  result.push(current);
+  return result;
+}
+
+// ── Render preview table ──────────────────────
+function renderPreview() {
+  const tbody = document.getElementById("preview-tbody");
+  tbody.innerHTML = parsedHoldings.map((h, i) => `
+    <tr>
+      <td><input type="checkbox" class="row-check" data-idx="${i}" ${h.selected?"checked":""} onchange="parsedHoldings[${i}].selected=this.checked;updateSummary()" /></td>
+      <td class="cell-ticker">${h.ticker}</td>
+      <td style="font-family:var(--font-m)">${h.netShares.toLocaleString(undefined,{maximumFractionDigits:4})}</td>
+      <td style="font-family:var(--font-m)">${fmt$(h.avgPrice)}</td>
+      <td><span class="badge badge-green">▲ ${h.totalBuys} buy${h.totalBuys!==1?"s":""}</span></td>
+      <td>${h.totalSells > 0 ? `<span class="badge badge-red">▼ ${h.totalSells} sell${h.totalSells!==1?"s":""}</span>` : "<span style='color:var(--text3)'>—</span>"}</td>
+      <td style="font-family:var(--font-m);color:var(--text2)">${h.firstDate||"—"}</td>
+      <td><span class="badge badge-blue">Ready</span></td>
+    </tr>
+  `).join("");
+
+  updateSummary();
+
+  if (skippedRows.length > 0) {
+    document.getElementById("skipped-section").style.display = "block";
+    document.getElementById("skipped-list").innerHTML = skippedRows.join("<br>");
+  }
+}
+
+function updateSummary() {
+  const selected = parsedHoldings.filter(h => h.selected);
+  const totalCost = selected.reduce((s,h) => s + h.netShares * h.avgPrice, 0);
+  document.getElementById("summary-bar").innerHTML = `
+    <div class="summary-item"><span class="summary-label">Selected</span><span class="summary-value">${selected.length}</span></div>
+    <div class="summary-item"><span class="summary-label">Total Holdings</span><span class="summary-value">${parsedHoldings.length}</span></div>
+    <div class="summary-item"><span class="summary-label">Est. Cost Basis</span><span class="summary-value">${fmt$(totalCost)}</span></div>
+    <div class="summary-item"><span class="summary-label">Skipped Rows</span><span class="summary-value" style="color:var(--text3)">${skippedRows.length}</span></div>
+  `;
+  document.getElementById("import-btn").textContent = `⊕ Import ${selected.length} Holding${selected.length!==1?"s":""}`;
+}
+
+function toggleAll(checked) {
+  parsedHoldings.forEach(h => h.selected = checked);
+  document.querySelectorAll(".row-check").forEach(c => c.checked = checked);
+  updateSummary();
+}
+
+function toggleSkipped() {
+  const list = document.getElementById("skipped-list");
+  const title = document.querySelector(".skipped-title");
+  const isVisible = list.style.display !== "none";
+  list.style.display = isVisible ? "none" : "block";
+  title.textContent = (isVisible ? "▶" : "▼") + " Show skipped rows (dividends, reinvestments, etc.)";
+}
+
+// ── Import holdings ───────────────────────────
+async function importHoldings() {
+  const toImport = parsedHoldings.filter(h => h.selected);
+  if (toImport.length === 0) { showMsg("msg-import-error", "No holdings selected."); return; }
+
+  const btn = document.getElementById("import-btn");
+  const status = document.getElementById("import-status");
+  const progressBar = document.getElementById("progress-bar");
+  const progressFill = document.getElementById("progress-fill");
+
+  btn.disabled = true;
+  progressBar.style.display = "block";
+  hideMsg("msg-success"); hideMsg("msg-import-error");
+
+  let imported = 0, skipped = 0, failed = 0;
+
+  for (let i = 0; i < toImport.length; i++) {
+    const h = toImport[i];
+    status.textContent = `Importing ${h.ticker}… (${i+1}/${toImport.length})`;
+    progressFill.style.width = `${((i+1)/toImport.length)*100}%`;
+
+    try {
+      const res = await fetch(`${API}/holdings/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({
+          ticker: h.ticker,
+          shares: h.netShares,
+          purchase_price: h.avgPrice,
+          purchase_date: formatDate(h.firstDate),
+          notes: `Imported from Fidelity CSV`,
+        }),
+      });
+
+      if (res.status === 401) { window.location.href = "login.html"; return; }
+      if (res.ok) { imported++; }
+      else {
+        const err = await res.json();
+        if (err.detail && err.detail.includes("Invalid ticker")) { skipped++; }
+        else { failed++; console.warn(`${h.ticker}:`, err.detail); }
+      }
+    } catch (e) { failed++; console.error(h.ticker, e); }
+
+    // Small delay to avoid rate limiting yfinance
+    await sleep(300);
+  }
+
+  progressFill.style.width = "100%";
+  status.textContent = "";
+  btn.disabled = false;
+
+  const msg = `✓ Import complete! ${imported} imported, ${skipped} skipped (invalid ticker), ${failed} failed.`;
+  showMsg("msg-success", msg);
+
+  if (imported > 0) {
+    setTimeout(() => { window.location.href = "index.html"; }, 2500);
+  }
+}
+
+// ── Helpers ───────────────────────────────────
+function formatDate(fidelityDate) {
+  // Convert MM/DD/YYYY to YYYY-MM-DD
+  if (!fidelityDate) return null;
+  const parts = fidelityDate.split("/");
+  if (parts.length !== 3) return null;
+  return `${parts[2]}-${parts[0].padStart(2,"0")}-${parts[1].padStart(2,"0")}`;
+}
+
+function fmt$(n) {
+  if (!n && n !== 0) return "—";
+  return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",minimumFractionDigits:2}).format(n);
+}
+
+function showMsg(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.style.display="block"; }
+function hideMsg(id) { document.getElementById(id).style.display="none"; }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function resetImport() {
+  parsedHoldings = []; skippedRows = [];
+  document.getElementById("preview-section").style.display = "none";
+  document.getElementById("csv-file").value = "";
+  hideMsg("msg-error"); hideMsg("msg-info");
+  document.getElementById("progress-bar").style.display = "none";
+  document.getElementById("progress-fill").style.width = "0%";
+  document.getElementById("skipped-section").style.display = "none";
+}
+</script>
+</body>
+</html>
