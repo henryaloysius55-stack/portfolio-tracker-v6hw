@@ -1,10 +1,21 @@
+# Web & API
+streamlit
 fastapi
 uvicorn
-sqlalchemy
+httpx
+
+# Data & Finance
 yfinance
-python-dotenv
+matplotlib
+pandas
+numpy
+
+# Database & Logic 
+sqlalchemy
+psycopg2-binary
 pydantic
+python-dotenv
+
+# Security
 python-jose[cryptography]
 passlib[bcrypt]
-httpx
-psycopg2-binary
