@@ -1,21 +1,14 @@
-# Data & Visualization
+streamlit
 matplotlib
-pandas
 numpy
 yfinance
-
-# API & Web
+pandas
 fastapi
 uvicorn
-httpx
-streamlit
-
-# Database & Logic
 sqlalchemy
-psycopg2-binary
-pydantic
 python-dotenv
-
-# Security
+pydantic
 python-jose[cryptography]
 passlib[bcrypt]
+httpx
+psycopg2-binary
