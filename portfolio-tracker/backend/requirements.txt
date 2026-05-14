@@ -1,16 +1,16 @@
-# Web & API
-streamlit
-fastapi
-uvicorn
-httpx
-
-# Data & Finance
-yfinance
+# Data & Visualization
 matplotlib
 pandas
 numpy
+yfinance
 
-# Database & Logic 
+# API & Web
+fastapi
+uvicorn
+httpx
+streamlit
+
+# Database & Logic
 sqlalchemy
 psycopg2-binary
 pydantic
