@@ -1,0 +1,14 @@
+streamlit
+matplotlib
+numpy
+yfinance
+pandas
+fastapi
+uvicorn
+sqlalchemy
+python-dotenv
+pydantic
+python-jose[cryptography]
+passlib[bcrypt]
+httpx
+psycopg2-binary
