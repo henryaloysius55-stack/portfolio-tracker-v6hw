@@ -736,3 +736,22 @@ document.addEventListener("click", e => { if(e.target.id==="modal-overlay") clos
 function fmt$(n) { if(n===null||n===undefined||isNaN(n))return"—"; return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",minimumFractionDigits:2}).format(n); }
 function setText(id,val) { const el=document.getElementById(id); if(el) el.textContent=val; }
 function showMsg(el,msg) { el.textContent=msg; el.style.display="block"; }
+// ── EquityLens Integration ──────────────────────────────
+function launchEquityLens(ticker) {
+  const t = ticker || document.getElementById('el-ticker-input').value.trim().toUpperCase();
+  if (!t) return;
+  const url = `https://equitylens.streamlit.app/?ticker=${t}`;
+  document.getElementById('el-iframe').src = url;
+  document.getElementById('el-frame-wrap').style.display = 'block';
+  document.getElementById('el-placeholder').style.display = 'none';
+  switchView('equitylens');
+}
+
+function populateEquityLensPills() {
+  const pills = document.getElementById('el-holdings-pills');
+  if (!pills) return;
+  const tickers = holdings.map(h => h.ticker);
+  pills.innerHTML = tickers.map(t =>
+    `<button class="pill" onclick="launchEquityLens('${t}')">${t}</button>`
+  ).join('');
+}
