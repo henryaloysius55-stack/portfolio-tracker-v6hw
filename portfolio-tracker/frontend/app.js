@@ -740,7 +740,7 @@ function showMsg(el,msg) { el.textContent=msg; el.style.display="block"; }
 function launchEquityLens(ticker) {
   const t = ticker || document.getElementById('el-ticker-input').value.trim().toUpperCase();
   if (!t) return;
-  const url = `https://equitylens.streamlit.app/?ticker=${t}`;
+  const url = `https://equitylens1.streamlit.app/?ticker=${t}`;
   document.getElementById('el-iframe').src = url;
   document.getElementById('el-frame-wrap').style.display = 'block';
   document.getElementById('el-placeholder').style.display = 'none';
