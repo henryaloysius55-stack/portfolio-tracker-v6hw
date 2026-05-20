@@ -79,7 +79,10 @@ function switchView(view) {
   if (view === "copy")       loadCopyTrading();
   if (view === "strategies") loadStrategies();
   if (view === "paper")      loadPaperPortfolio();
-  if (view === "equitylens") populateEquityLensPills();
+if (view === "equitylens") populateEquityLensPills();
+} 
+
+function setStatus(online, text) {
 
 function setStatus(online, text) {
   const dot = document.getElementById("status-dot");
