@@ -79,7 +79,7 @@ function switchView(view) {
   if (view === "copy")       loadCopyTrading();
   if (view === "strategies") loadStrategies();
   if (view === "paper")      loadPaperPortfolio();
-}
+  if (view === "equitylens") populateEquityLensPills();
 
 function setStatus(online, text) {
   const dot = document.getElementById("status-dot");
@@ -160,7 +160,7 @@ function renderHoldingsTable() {
   if (!holdings.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="9">No holdings — <a href="#" onclick="switchView('add')" style="color:var(--accent)">add your first</a>.</td></tr>`; return; }
   tbody.innerHTML = holdings.map(h => {
     const gl = h.gain_loss, pct = h.gain_loss_pct, sign = gl>=0?"+":"";
-    return `<tr><td class="cell-ticker">${h.ticker}</td><td class="cell-mono">${h.shares.toLocaleString(undefined,{maximumFractionDigits:4})}</td><td class="cell-mono">${fmt$(h.purchase_price)}</td><td class="cell-mono">${fmt$(h.current_price)}</td><td class="cell-mono">${fmt$(h.current_value)}</td><td class="cell-mono ${gl>=0?"green":"red"}">${sign}${fmt$(gl)}</td><td><span class="badge ${gl>=0?"badge-green":"badge-red"}">${sign}${pct.toFixed(2)}%</span></td><td class="cell-mono muted">${h.purchase_date||"—"}</td><td><button class="btn btn-icon" onclick="openDeleteModal('holding',${h.id},'${h.ticker}')">✕</button></td></tr>`;
+return `<tr><td class="cell-ticker">${h.ticker}</td><td class="cell-mono">${h.shares.toLocaleString(undefined,{maximumFractionDigits:4})}</td><td class="cell-mono">${fmt$(h.purchase_price)}</td><td class="cell-mono">${fmt$(h.current_price)}</td><td class="cell-mono">${fmt$(h.current_value)}</td><td class="cell-mono ${gl>=0?"green":"red"}">${sign}${fmt$(gl)}</td><td><span class="badge ${gl>=0?"badge-green":"badge-red"}">${sign}${pct.toFixed(2)}%</span></td><td class="cell-mono muted">${h.purchase_date||"—"}</td><td><button class="btn btn-ghost btn-sm" onclick="launchEquityLens('${h.ticker}')">◈ Analyze</button></td><td><button class="btn btn-icon" onclick="openDeleteModal('holding',${h.id},'${h.ticker}')">✕</button></td></tr>`;
   }).join("");
 }
 
