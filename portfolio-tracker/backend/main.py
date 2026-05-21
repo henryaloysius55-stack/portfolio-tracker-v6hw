@@ -12,6 +12,7 @@ from routes.copytrading import router as copytrading_router
 from routes.ai_advisor import router as ai_advisor_router
 from routes.paper_trading import router as paper_trading_router
 from routes.strategies import router as strategies_router
+from routes.equitylens import router as equitylens_router
 
 Base.metadata.create_all(bind=engine)
 
