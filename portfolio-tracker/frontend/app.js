@@ -741,11 +741,17 @@ function showMsg(el,msg) { el.textContent=msg; el.style.display="block"; }
 function launchEquityLens(ticker) {
   const t = ticker || document.getElementById('el-ticker-input').value.trim().toUpperCase();
   if (!t) return;
-  const url = `https://equitylens1.streamlit.app/?ticker=${t}`;
-  document.getElementById('el-iframe').src = url;
-  document.getElementById('el-frame-wrap').style.display = 'block';
-  document.getElementById('el-placeholder').style.display = 'none';
   switchView('equitylens');
+  document.getElementById('el-placeholder').style.display = 'none';
+  document.getElementById('el-frame-wrap').style.display = 'none';
+  document.getElementById('el-results').style.display = 'block';
+  document.getElementById('el-results').innerHTML = `<div class="bench-loading"><div class="spinner"></div><p>Analyzing ${t}…</p></div>`;
+  authFetch(`${API}/equitylens/analyze/${t}`)
+    .then(r => r.json())
+    .then(data => renderEquityLensResults(data))
+    .catch(() => {
+      document.getElementById('el-results').innerHTML = `<p style="color:var(--red)">⚠ Could not analyze ${t}.</p>`;
+    });
 }
 
 function populateEquityLensPills() {
