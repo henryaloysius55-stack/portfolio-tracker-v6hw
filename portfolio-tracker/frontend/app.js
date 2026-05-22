@@ -743,7 +743,6 @@ function launchEquityLens(ticker) {
   if (!t) return;
   switchView('equitylens');
   document.getElementById('el-placeholder').style.display = 'none';
-  document.getElementById('el-frame-wrap').style.display = 'none';
   document.getElementById('el-results').style.display = 'block';
   document.getElementById('el-results').innerHTML = `<div class="bench-loading"><div class="spinner"></div><p>Analyzing ${t}…</p></div>`;
   authFetch(`${API}/equitylens/analyze/${t}`)
