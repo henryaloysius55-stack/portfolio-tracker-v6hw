@@ -762,3 +762,72 @@ function populateEquityLensPills() {
     `<button class="pill" onclick="launchEquityLens('${t}')">${t}</button>`
   ).join('');
 }
+function renderEquityLensResults(data) {
+  const f = data.fundamentals, s = data.screener, dcf = data.dcf, mc = data.monte_carlo, sent = data.sentiment;
+  const signal = s.overall_signal?.replace(/_/g,' ').toUpperCase() || 'N/A';
+  const signalColor = signal.includes('BUY') ? 'var(--green)' : signal.includes('SELL') ? 'var(--red)' : 'var(--accent)';
+  const sentLabel = sent?.sentiment_label || 'N/A';
+  const sentColor = sentLabel === 'positive' ? 'var(--green)' : sentLabel === 'negative' ? 'var(--red)' : 'var(--accent)';
+
+  document.getElementById('el-results').innerHTML = `
+    <!-- Signal Banner -->
+    <div class="card" style="margin-bottom:16px;border-left:4px solid ${signalColor};display:flex;justify-content:space-between;align-items:center;padding:24px">
+      <div><p class="eyebrow">Analyzing</p><h2 style="font-size:28px;font-weight:900">${data.ticker}</h2></div>
+      <div style="text-align:center"><p class="stat-label">Price</p><p class="stat-value" style="color:var(--accent)">$${f.price ?? '—'}</p></div>
+      <div style="text-align:right"><p class="stat-label">Overall Signal</p><p style="color:${signalColor};font-size:20px;font-weight:800">${signal}</p></div>
+    </div>
+
+    <!-- Technical Signals -->
+    <p class="chart-label" style="margin-bottom:12px">Technical Signals</p>
+    <div class="stat-grid" style="margin-bottom:16px">
+      <div class="stat-card"><p class="stat-label">RSI (14)</p><p class="stat-value sm">${s.rsi ?? '—'}</p><p class="stat-delta muted">${s.rsi_signal ?? ''}</p></div>
+      <div class="stat-card"><p class="stat-label">MA Signal</p><p class="stat-value sm" style="font-size:14px">${s.ma_signal?.replace(/_/g,' ').toUpperCase() ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">Volume Spike</p><p class="stat-value sm">${s.volume_spike ? 'YES' : 'NO'}</p></div>
+      <div class="stat-card"><p class="stat-label">50d MA</p><p class="stat-value sm">$${s.ma_50 ?? '—'}</p><p class="stat-delta muted">200d: $${s.ma_200 ?? '—'}</p></div>
+    </div>
+
+    <!-- Fundamentals -->
+    <p class="chart-label" style="margin-bottom:12px">Fundamentals</p>
+    <div class="stat-grid" style="margin-bottom:16px">
+      <div class="stat-card"><p class="stat-label">P/E Ratio</p><p class="stat-value sm">${f.pe_ratio ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">EV/EBITDA</p><p class="stat-value sm">${f.ev_ebitda ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">Gross Margin</p><p class="stat-value sm">${f.gross_margin ?? '—'}%</p></div>
+      <div class="stat-card"><p class="stat-label">Revenue CAGR</p><p class="stat-value sm">${f.revenue_cagr ?? '—'}%</p></div>
+      <div class="stat-card"><p class="stat-label">Debt/Equity</p><p class="stat-value sm">${f.debt_equity ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">Current Ratio</p><p class="stat-value sm">${f.current_ratio ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">Beta</p><p class="stat-value sm">${f.beta ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">Fund. Score</p><p class="stat-value sm">${f.fundamental_score ?? '—'} / 5</p></div>
+    </div>
+
+    <!-- DCF Valuation -->
+    <p class="chart-label" style="margin-bottom:12px">DCF Valuation</p>
+    <div class="stat-grid" style="margin-bottom:16px;grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card" style="border-top:3px solid var(--red)"><p class="stat-label">Bear Case</p><p class="stat-value sm" style="color:var(--red)">$${dcf.bear?.intrinsic_value ?? '—'}</p><p class="stat-delta muted">${dcf.bear?.margin_of_safety ?? '—'}% vs current</p></div>
+      <div class="stat-card" style="border-top:3px solid var(--accent)"><p class="stat-label">Base Case</p><p class="stat-value sm" style="color:var(--accent)">$${dcf.base?.intrinsic_value ?? '—'}</p><p class="stat-delta muted">${dcf.base?.margin_of_safety ?? '—'}% vs current</p></div>
+      <div class="stat-card" style="border-top:3px solid var(--green)"><p class="stat-label">Bull Case</p><p class="stat-value sm" style="color:var(--green)">$${dcf.bull?.intrinsic_value ?? '—'}</p><p class="stat-delta muted">${dcf.bull?.margin_of_safety ?? '—'}% vs current</p></div>
+    </div>
+
+    <!-- Monte Carlo -->
+    <p class="chart-label" style="margin-bottom:12px">Monte Carlo Simulation</p>
+    <div class="stat-grid" style="margin-bottom:16px">
+      <div class="stat-card"><p class="stat-label">P10 Bear</p><p class="stat-value sm">$${mc.p10 ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">P25</p><p class="stat-value sm">$${mc.p25 ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">P50 Median</p><p class="stat-value sm">$${mc.p50 ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">P75</p><p class="stat-value sm">$${mc.p75 ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">P90 Bull</p><p class="stat-value sm">$${mc.p90 ?? '—'}</p></div>
+      <div class="stat-card"><p class="stat-label">Prob. Undervalued</p><p class="stat-value sm" style="color:var(--green)">${mc.prob_undervalued ?? '—'}%</p></div>
+    </div>
+
+    <!-- Sentiment -->
+    <p class="chart-label" style="margin-bottom:12px">News Sentiment</p>
+    <div class="stat-grid" style="margin-bottom:16px;grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card" style="border-top:3px solid ${sentColor}"><p class="stat-label">Sentiment</p><p class="stat-value sm" style="color:${sentColor}">${sentLabel.toUpperCase()}</p></div>
+      <div class="stat-card"><p class="stat-label">Score</p><p class="stat-value sm">${sent?.display_score?.toFixed(0) ?? '—'} / 100</p></div>
+      <div class="stat-card"><p class="stat-label">Headlines</p><p class="stat-value sm">${sent?.headline_count ?? '—'}</p></div>
+    </div>
+    ${sent?.headlines?.slice(0,5).map(h => {
+      const hc = h.label === 'positive' ? 'var(--green)' : h.label === 'negative' ? 'var(--red)' : 'var(--text-3)';
+      return `<div class="card" style="margin-bottom:8px;border-left:3px solid ${hc};padding:10px 16px"><p style="font-size:12px;color:#fff">${h.headline}</p><p style="font-size:11px;color:${hc};margin-top:4px">${h.label?.toUpperCase()} · ${(h.score*100).toFixed(0)}% confidence</p></div>`;
+    }).join('') ?? ''}
+  `;
+}
