@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException
 from modules.screener import screen_ticker
 from modules.fundamentals import analyze_ticker, calculate_analyst_rating
 from modules.dcf import run_dcf_analysis, run_monte_carlo
-from modules.sentiment import analyze_sentiment
 
 router = APIRouter(prefix="/equitylens", tags=["equitylens"])
 
@@ -14,14 +13,13 @@ async def analyze(ticker: str):
         fundamentals = analyze_ticker(ticker)
         dcf          = run_dcf_analysis(ticker)
         mc           = run_monte_carlo(ticker)
-        sentiment    = analyze_sentiment(ticker)
         return {
-            "ticker":      ticker,
-            "screener":    screener,
+            "ticker":       ticker,
+            "screener":     screener,
             "fundamentals": fundamentals,
-            "dcf":         dcf,
-            "monte_carlo": mc,
-            "sentiment":   sentiment,
+            "dcf":          dcf,
+            "monte_carlo":  mc,
+            "sentiment":    None
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
