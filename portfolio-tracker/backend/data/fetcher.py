@@ -1,40 +1,49 @@
-"""
-fetcher.py — Centralized data layer for EquityLens.
-"""
-import yfinance as yf
-import pandas as pd
-from curl_cffi import requests as curl_requests
+import os
+import requests
 
-session = curl_requests.Session(impersonate="chrome")
+API_KEY = os.environ.get("FMP_API_KEY")
+BASE = "https://financialmodelingprep.com/api/v3"
 
-def get_price_history(ticker: str, period: str = "1y") -> pd.DataFrame:
+def _get(endpoint, params={}):
     try:
-        stock = yf.Ticker(ticker, session=session)
-        df = stock.history(period=period)
-        if df.empty:
-            return pd.DataFrame()
-        return df
+        params["apikey"] = API_KEY
+        r = requests.get(f"{BASE}/{endpoint}", params=params, timeout=10)
+        r.raise_for_status()
+        return r.json()
     except Exception as e:
-        print(f"[Error] Could not fetch price data for {ticker}: {e}")
+        print(f"[Error] FMP request failed: {e}")
+        return None
+
+def get_price_history(ticker: str, period: str = "1y") -> "pd.DataFrame":
+    import pandas as pd
+    data = _get(f"historical-price-full/{ticker}", {"serietype": "line"})
+    if not data or "historical" not in data:
         return pd.DataFrame()
+    df = pd.DataFrame(data["historical"])
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date").set_index("date")
+    df = df.rename(columns={"close": "Close", "open": "Open",
+                             "high": "High", "low": "Low", "volume": "Volume"})
+    # Filter to roughly 1 year
+    cutoff = pd.Timestamp.now() - pd.DateOffset(years=1)
+    return df[df.index >= cutoff]
 
 def get_financials(ticker: str) -> dict:
-    try:
-        stock = yf.Ticker(ticker, session=session)
-        return {
-            "income_stmt":   stock.income_stmt,
-            "balance_sheet": stock.balance_sheet,
-            "cash_flow":     stock.cash_flow,
-            "info":          stock.info
-        }
-    except Exception as e:
-        print(f"[Error] Could not fetch financials for {ticker}: {e}")
+    profile   = _get(f"profile/{ticker}")
+    income    = _get(f"income-statement/{ticker}", {"limit": 4})
+    cashflow  = _get(f"cash-flow-statement/{ticker}", {"limit": 4})
+    ratios    = _get(f"ratios-ttm/{ticker}")
+    if not profile:
         return {}
+    return {
+        "profile":   profile[0] if profile else {},
+        "income":    income or [],
+        "cashflow":  cashflow or [],
+        "ratios":    ratios[0] if ratios else {},
+    }
 
 def get_current_price(ticker: str):
-    try:
-        stock = yf.Ticker(ticker, session=session)
-        return stock.info.get("currentPrice")
-    except Exception as e:
-        print(f"[Error] Could not fetch current price for {ticker}: {e}")
-        return None
+    data = _get(f"quote-short/{ticker}")
+    if data and len(data) > 0:
+        return data[0].get("price")
+    return None
