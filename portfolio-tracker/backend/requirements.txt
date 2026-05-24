@@ -13,7 +13,5 @@ python-jose[cryptography]
 passlib[bcrypt]
 httpx
 psycopg2-binary
-torch
-transformers
 plotly
 requests
