@@ -37,7 +37,6 @@ app.include_router(copytrading_router)
 app.include_router(ai_advisor_router)
 app.include_router(paper_trading_router)
 app.include_router(strategies_router)
-app.include_router(strategies_router)
 app.include_router(equitylens_router)  
 
 @app.get("/")
